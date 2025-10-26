@@ -7,6 +7,7 @@ See copyright notice in file LICENSE.
 PANDOC_VERSION:must_be_at_least '3.0'
 
 local version = pandoc.types.Version '1.2.0'
+local base64 = require('filters.base64')
 
 -- Report Lua warnings to stderr if the `warn` function is not plugged into
 -- pandoc's logging system.
@@ -622,7 +623,13 @@ local function code_to_figure (conf)
     pandoc.mediabag.insert(fname, imgtype, imgdata)
 
     -- Create the image object.
-    local image = pandoc.Image(dgr_opt.alt, fname, "", dgr_opt['image-attr'])
+    local image
+    if FORMAT=='html' then
+      local data = string.format('data:%s;base64,%s', imgtype, base64.encode(imgdata))
+      image = pandoc.Image(dgr_opt.alt, data, "", dgr_opt['image-attr'])
+    else
+      image = pandoc.Image(dgr_opt.alt, fname, "", dgr_opt['image-attr'])
+    end
 
     -- Create a figure if the diagram has a caption; otherwise return
     -- just the image.
